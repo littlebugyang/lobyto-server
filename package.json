@@ -1,0 +1,23 @@
+{
+  "name": "lobyto-server",
+  "version": "0.0.1",
+  "description": "Back-end server of lobyto",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/littlebugyang/lobyto-server.git"
+  },
+  "author": "littlebugyang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/littlebugyang/lobyto-server/issues"
+  },
+  "homepage": "https://github.com/littlebugyang/lobyto-server#readme"
+}
