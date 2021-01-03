@@ -6,7 +6,7 @@ let bodyParser = require('body-parser')
 const app = express()
 const port = 3000
 
-import secret from './secret'
+const secret = require('./secret.js')
 const host = secret.host
 const database_password = secret.database_password
 const user_name = secret.user_name
@@ -83,20 +83,9 @@ app.post('/add_task', (req, res) => {
 })
 
 app.put('/update_task', (req, res) => {
-    const test = {
-        body: {
-            userName: user_name,
-            password: user_password,
-            task: {
-                id: 1,
-                title: ``,
-                status: 1
-            }
-        }
-    }
-    let userName = test.body.userName
-    let password = test.body.password
-    let task = test.body.task
+    let userName = req.body.userName
+    let password = req.body.password
+    let task = req.body.task
 
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
