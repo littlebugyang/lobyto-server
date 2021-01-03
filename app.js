@@ -11,6 +11,7 @@ const test_user_password = ""
 // const host = "localhost"
 
 let connectionPool = mysql.createPool({
+    multipleStatements: true,
     connectionLimit: 1,
     host: host,
     user: 'root',
@@ -19,17 +20,13 @@ let connectionPool = mysql.createPool({
 })
 
 app.get('/', (req, res) => {
+    // test connection
     res.send('Hello World!')
 })
 
-app.get('/get_users', (req, res) => {
-    connection.connect()
-    const sql = 'SELECT * FROM users;'
-    connection.query(sql, (err, rows, fields) => {
-        if (err) throw err
-        res.send(rows[0])
-    })
-})
+// app.get('/get_users', (req, res) => {
+//     // single user system
+// })
 
 app.get('/get_tasks', (req, res) => {
     connectionPool.getConnection((err, connection) => {
@@ -44,40 +41,24 @@ app.get('/get_tasks', (req, res) => {
 })
 
 app.get('/get_countdowns', (req, res) => {
-    connection.connect()
-    const sql = 'SELECT * FROM countdowns'
-    connection.query(sql, (err, rows, fields) => {
-        if (err) throw err
-        res.send(rows)
+    connectionPool.getConnection((err, connection) => {
+        if (err) throw err // not connected
+        const sql = 'SELECT * FROM countdowns'
+        connection.query(sql, (error, rows, fields) => {
+            if (error) throw error
+            connection.release()
+            res.send(rows)
+        })
     })
 })
 
 app.post('/add_task', (req, res) => {
-    let userName = req.body.userName
-    let password = req.body.password
-    let task = req.body.task
-    connection.connect()
-    let sql = 'SELECT * FROM users'
-    connection.query(sql, (err, rows, fields) => {
-        if (err) throw err
-        const result = JSON.parse(rows[0])
-        if (result.userName == userName && result.password == password) {
-            sql = `INSERT INTO tasks (user_id, task_title) VALUES (${result.user_id}, ${task.title});`
-            connection.query(sql, (newErr, newRows, newFields) => {
-                if (newErr) throw newErr
-                res.send(newRows[0])
-            })
-        }
-    })
-})
-
-app.get('/add_task', (req, res) => {
     const test = {
         body: {
             userName: test_user_name,
             password: test_user_password,
             task: {
-                title: `''""''"'''d///a/\\\/sd/{}[a][1(*\``
+                title: `Test 123`
             }
         }
     }
@@ -92,12 +73,45 @@ app.get('/add_task', (req, res) => {
             if (error) throw error
             const result = rows[0]
             if (result.user_name == userName && result.user_password == password) {
-                sql = `INSERT INTO tasks (user_id, task_title) VALUES (?, ?);` // ? stands for to be escaped
-                console.log(sql)
+                sql = `INSERT INTO tasks (user_id, task_title) VALUES (?, ?); SELECT * from tasks where task_id=LAST_INSERT_ID();` // ? stands for to be escaped
                 connection.query(sql, [result.user_id, task.title], (newErr, newRows, newFields) => {
                     if (newErr) throw newErr
                     connection.release()
-                    res.send(newRows)
+                    res.send(newRows[1])
+                })
+            }
+        })
+    })
+})
+
+app.put('/update_task', (req, res) => {
+    const test = {
+        body: {
+            userName: test_user_name,
+            password: test_user_password,
+            task: {
+                id: 1,
+                title: ``,
+                status: 1
+            }
+        }
+    }
+    let userName = test.body.userName
+    let password = test.body.password
+    let task = test.body.task
+
+    connectionPool.getConnection((err, connection) => {
+        if (err) throw err // not connected
+        let sql = 'SELECT * FROM users'
+        connection.query(sql, (error, rows, fields) => {
+            if (error) throw error
+            const result = rows[0]
+            if (result.user_name == userName && result.user_password == password) {
+                sql = `UPDATE tasks SET task_title=?, task_status=?, task_modified_time=CURRENT_TIMESTAMP(6) where task_id=?; SELECT * from tasks where task_id=?;` // ? stands for to be escaped
+                console.log(sql)
+                connection.query(sql, [task.title, task.status, task.id, task.id], (newErr, newRows, newFields) => {
+                    if (newErr) throw newErr
+                    res.send(newRows[1])
                 })
             }
         })
