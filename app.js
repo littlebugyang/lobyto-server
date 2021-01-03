@@ -1,14 +1,16 @@
 const express = require('express')
 const mysql = require("mysql")
 const moment = require("moment")
+let bodyParser = require('body-parser')
 
 const app = express()
 const port = 3000
 
-const host = ""
-const database_password = ""
-const test_user_name = ""
-const test_user_password = ""
+import secret from './secret'
+const host = secret.host
+const database_password = secret.database_password
+const user_name = secret.user_name
+const user_password = secret.user_password
 
 let connectionPool = mysql.createPool({
     multipleStatements: true,
@@ -18,6 +20,10 @@ let connectionPool = mysql.createPool({
     password: database_password,
     database: 'lobyto'
 })
+
+// to parse the body of the request
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
 
 app.get('/', (req, res) => {
     // test connection
@@ -53,19 +59,11 @@ app.get('/get_countdowns', (req, res) => {
 })
 
 app.post('/add_task', (req, res) => {
-    // const test = {
-    //     body: {
-    //         userName: test_user_name,
-    //         password: test_user_password,
-    //         task: {
-    //             title: `Test 123`
-    //         }
-    //     }
-    // }
     let userName = req.body.userName
     let password = req.body.password
     let task = req.body.task
 
+    // todo: handle body with null
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
         let sql = 'SELECT * FROM users'
@@ -87,8 +85,8 @@ app.post('/add_task', (req, res) => {
 app.put('/update_task', (req, res) => {
     const test = {
         body: {
-            userName: test_user_name,
-            password: test_user_password,
+            userName: user_name,
+            password: user_password,
             task: {
                 id: 1,
                 title: ``,
@@ -119,20 +117,11 @@ app.put('/update_task', (req, res) => {
 })
 
 app.post('/add_countdown', (req, res) => {
-    const test = {
-        body: {
-            userName: test_user_name,
-            password: test_user_password,
-            countdown: {
-                startTime: 1609679478828,
-                taskId: 1,
-                length: 45
-            }
-        }
-    }
     let userName = req.body.userName
     let password = req.body.password
     let countdown = req.body.countdown
+    countdown.length = parseInt(countdown.length, 10)
+    countdown.startTime = moment(countdown.startTime).format("YYYY-MM-DD hh:mm:ss.SSSSSS")
 
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
@@ -142,7 +131,7 @@ app.post('/add_countdown', (req, res) => {
             const result = rows[0]
             if (result.user_name == userName && result.user_password == password) {
                 sql = `INSERT INTO countdowns (countdown_start_time, countdown_length, user_id, task_id) values (?, ?, ?, ?); SELECT * FROM countdowns WHERE countdown_id=LAST_INSERT_ID()` // ? stands for to be escaped
-                connection.query(sql, [moment(countdown.startTime).format("YYYY-MM-DD hh:mm:ss.SSSSSS"), countdown.length, result.user_id, countdown.taskId], (newErr, newRows, newFields) => {
+                connection.query(sql, [countdown.startTime, countdown.length, result.user_id, countdown.taskId], (newErr, newRows, newFields) => {
                     if (newErr) throw newErr
                     connection.release()
                     res.send(newRows[1])
