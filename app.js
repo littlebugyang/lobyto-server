@@ -1,12 +1,12 @@
-const express = require('express')
+const express = require("express")
 const mysql = require("mysql")
 const moment = require("moment")
-let bodyParser = require('body-parser')
+let bodyParser = require("body-parser")
 
 const app = express()
 const port = 3000
 
-const secret = require('./secret.js')
+const secret = require("./secret.js")
 const host = secret.host
 const database_password = secret.database_password
 const user_name = secret.user_name
@@ -16,28 +16,28 @@ let connectionPool = mysql.createPool({
     multipleStatements: true,
     connectionLimit: 1,
     host: host,
-    user: 'root',
+    user: "root",
     password: database_password,
-    database: 'lobyto'
+    database: "lobyto"
 })
 
 // to parse the body of the request
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({extended: true}))
 
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
     // test connection
-    res.send('Hello World!')
+    res.send("Hello World!")
 })
 
 // app.get('/get_users', (req, res) => {
 //     // single user system doesn't need this
 // })
 
-app.get('/get_tasks', (req, res) => {
+app.get("/get_tasks", (req, res) => {
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
-        const sql = 'SELECT * FROM tasks'
+        const sql = "SELECT * FROM tasks"
         connection.query(sql, (error, rows, fields) => {
             if (error) throw error
             connection.release()
@@ -46,10 +46,10 @@ app.get('/get_tasks', (req, res) => {
     })
 })
 
-app.get('/get_countdowns', (req, res) => {
+app.get("/get_countdowns", (req, res) => {
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
-        const sql = 'SELECT * FROM countdowns'
+        const sql = "SELECT * FROM countdowns"
         connection.query(sql, (error, rows, fields) => {
             if (error) throw error
             connection.release()
@@ -58,7 +58,7 @@ app.get('/get_countdowns', (req, res) => {
     })
 })
 
-app.post('/add_task', (req, res) => {
+app.post("/add_task", (req, res) => {
     let userName = req.body.userName
     let password = req.body.password
     let task = req.body.task
@@ -66,7 +66,7 @@ app.post('/add_task', (req, res) => {
     // todo: handle body with null
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
-        let sql = 'SELECT * FROM users'
+        let sql = "SELECT * FROM users"
         connection.query(sql, (error, rows, fields) => {
             if (error) throw error
             const result = rows[0]
@@ -82,20 +82,19 @@ app.post('/add_task', (req, res) => {
     })
 })
 
-app.put('/update_task', (req, res) => {
+app.put("/update_task", (req, res) => {
     let userName = req.body.userName
     let password = req.body.password
     let task = req.body.task
 
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
-        let sql = 'SELECT * FROM users'
+        let sql = "SELECT * FROM users"
         connection.query(sql, (error, rows, fields) => {
             if (error) throw error
             const result = rows[0]
             if (result.user_name == userName && result.user_password == password) {
                 sql = `UPDATE tasks SET task_title=?, task_status=?, task_modified_time=CURRENT_TIMESTAMP(6) WHERE task_id=?; SELECT * FROM tasks WHERE task_id=?;` // ? stands for to be escaped
-                console.log(sql)
                 connection.query(sql, [task.title, task.status, task.id, task.id], (newErr, newRows, newFields) => {
                     if (newErr) throw newErr
                     res.send(newRows[1])
@@ -105,7 +104,7 @@ app.put('/update_task', (req, res) => {
     })
 })
 
-app.post('/add_countdown', (req, res) => {
+app.post("/add_countdown", (req, res) => {
     let userName = req.body.userName
     let password = req.body.password
     let countdown = req.body.countdown
@@ -114,7 +113,7 @@ app.post('/add_countdown', (req, res) => {
 
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
-        let sql = 'SELECT * FROM users'
+        let sql = "SELECT * FROM users"
         connection.query(sql, (error, rows, fields) => {
             if (error) throw error
             const result = rows[0]
