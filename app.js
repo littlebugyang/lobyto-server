@@ -9,8 +9,6 @@ const port = 3000
 const secret = require("./secret.js")
 const host = secret.host
 const database_password = secret.database_password
-const user_name = secret.user_name
-const user_password = secret.user_password
 
 let connectionPool = mysql.createPool({
     multipleStatements: true,
@@ -35,6 +33,7 @@ app.get("/", (req, res) => {
 // })
 
 app.get("/get_tasks", (req, res) => {
+    console.log("Route to /get_tasks. ")
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
         const sql = "SELECT * FROM tasks"
@@ -47,6 +46,7 @@ app.get("/get_tasks", (req, res) => {
 })
 
 app.get("/get_countdowns", (req, res) => {
+    console.log("Route to /get_countdowns. ")
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
         const sql = "SELECT * FROM countdowns"
@@ -59,6 +59,7 @@ app.get("/get_countdowns", (req, res) => {
 })
 
 app.post("/add_task", (req, res) => {
+    console.log("Route to /add_task. ")
     let userName = req.body.userName
     let password = req.body.password
     let task = req.body.task
@@ -75,6 +76,7 @@ app.post("/add_task", (req, res) => {
                 connection.query(sql, [result.user_id, task.title], (newErr, newRows, newFields) => {
                     if (newErr) throw newErr
                     connection.release()
+                    console.log("Send back data: ", newRows[1])
                     res.send(newRows[1])
                 })
             }
@@ -83,6 +85,7 @@ app.post("/add_task", (req, res) => {
 })
 
 app.put("/update_task", (req, res) => {
+    console.log("Route to /update_task. ")
     let userName = req.body.userName
     let password = req.body.password
     let task = req.body.task
@@ -97,6 +100,7 @@ app.put("/update_task", (req, res) => {
                 sql = `UPDATE tasks SET task_title=?, task_status=?, task_modified_time=CURRENT_TIMESTAMP(6) WHERE task_id=?; SELECT * FROM tasks WHERE task_id=?;` // ? stands for to be escaped
                 connection.query(sql, [task.title, task.status, task.id, task.id], (newErr, newRows, newFields) => {
                     if (newErr) throw newErr
+                    console.log("Send back data: ", newRows[1])
                     res.send(newRows[1])
                 })
             }
@@ -105,6 +109,7 @@ app.put("/update_task", (req, res) => {
 })
 
 app.post("/add_countdown", (req, res) => {
+    console.log("Route to /add_countdown. ")
     let userName = req.body.userName
     let password = req.body.password
     let countdown = req.body.countdown
@@ -122,6 +127,7 @@ app.post("/add_countdown", (req, res) => {
                 connection.query(sql, [countdown.startTime, countdown.length, result.user_id, countdown.taskId], (newErr, newRows, newFields) => {
                     if (newErr) throw newErr
                     connection.release()
+                    console.log("Send back data: ", newRows[1])
                     res.send(newRows[1])
                 })
             }
@@ -130,5 +136,5 @@ app.post("/add_countdown", (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
+    console.log(`Lobyto-server listening at http://localhost:${port}`)
 })
