@@ -100,6 +100,7 @@ app.put("/update_task", (req, res) => {
                 sql = `UPDATE tasks SET task_title=?, task_status=?, task_modified_time=CURRENT_TIMESTAMP(6) WHERE task_id=?; SELECT * FROM tasks WHERE task_id=?;` // ? stands for to be escaped
                 connection.query(sql, [task.title, task.status, task.id, task.id], (newErr, newRows, newFields) => {
                     if (newErr) throw newErr
+                    connection.release()
                     console.log("Send back data: ", newRows[1])
                     res.send(newRows[1])
                 })
