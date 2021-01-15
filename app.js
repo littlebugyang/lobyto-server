@@ -1,7 +1,7 @@
 const express = require("express")
 const mysql = require("mysql")
 const moment = require("moment")
-let bodyParser = require("body-parser")
+const bodyParser = require("body-parser")
 
 const app = express()
 
@@ -35,11 +35,15 @@ app.get("/", (req, res) => {
 // })
 
 app.get("/get_tasks", (req, res) => {
+    // page starts from 1
+    // limit starts from 1
+    const page = req.params.page || 1
+    const limit = req.params.limit || 10
     console.log("Route to /get_tasks. ")
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
-        const sql = "SELECT * FROM tasks"
-        connection.query(sql, (error, rows, fields) => {
+        const sql = "SELECT * FROM tasks LIMIT ? OFFSET ?"
+        connection.query(sql, [limit, (page - 1) * limit], (error, rows, fields) => {
             if (error) throw error
             connection.release()
             res.send(rows)
@@ -51,7 +55,7 @@ app.get("/get_countdowns", (req, res) => {
     // page starts from 1
     // limit starts from 1
     const page = req.params.page || 1
-    const limit = req.params.limit || 5
+    const limit = req.params.limit || 500
     console.log("Route to /get_countdowns. ")
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
@@ -129,7 +133,7 @@ app.post("/add_countdown", (req, res) => {
         connection.query(sql, (error, rows, fields) => {
             if (error) throw error
             const result = rows[0]
-            if (result.user_name == userName && result.user_password == password) {
+            if (result.user_name === userName && result.user_password === password) {
                 sql = `INSERT INTO countdowns (countdown_start_time, countdown_length, user_id, task_id) values (?, ?, ?, ?); SELECT * FROM countdowns WHERE countdown_id=LAST_INSERT_ID()` // ? stands for to be escaped
                 connection.query(sql, [countdown.startTime, countdown.length, result.user_id, countdown.taskId], (newErr, newRows, newFields) => {
                     if (newErr) throw newErr
