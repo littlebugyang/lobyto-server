@@ -53,14 +53,14 @@ app.get("/get_tasks/", (req, res) => {
 })
 
 app.get("/get_countdowns", (req, res) => {
+    console.log("Route to /get_countdowns. ")
     // page starts from 1
     // limit starts from 1
-    const page = req.params.page || 1
-    const limit = req.params.limit || 500
-    console.log("Route to /get_countdowns. ")
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.perPage) || 300
     connectionPool.getConnection((err, connection) => {
         if (err) throw err // not connected
-        const sql = "SELECT * FROM countdowns LIMIT ? OFFSET ?"
+        const sql = "SELECT * FROM countdowns ORDER BY countdown_id DESC LIMIT ? OFFSET ?"
         connection.query(sql, [limit, (page - 1) * limit], (error, rows, fields) => {
             if (error) throw error
             connection.release()
