@@ -1,11 +1,12 @@
 const express = require('express')
-const moment = require('moment')
 const bodyParser = require('body-parser')
 const router = require('./core/router')
 
 const app = express()
 
-app.use(router)
+const baseURL = '/api/'
+const version = 'v1'
+app.use(baseURL + version, router)
 // to parse the body of the request
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
