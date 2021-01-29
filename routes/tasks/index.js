@@ -35,7 +35,6 @@ module.exports = ({ router, orm }) => {
             (newErr, newRows, newFields) => {
               if (newErr) throw newErr
               connection.release()
-              console.log('Send back data: ', newRows[1])
               res.send(newRows[1])
             })
         }
