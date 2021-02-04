@@ -26,7 +26,7 @@ module.exports = ({ router, orm }) => {
     let countdown = req.body.countdown
     countdown.length = parseInt(countdown.length, 10)
     countdown.startTime = moment(countdown.startTime).
-      format('YYYY-MM-DD hh:mm:ss.SSSSSS')
+      format('YYYY-MM-DD HH:mm:ss.SSSSSS')
 
     orm.connectionPool.getConnection((err, connection) => {
       if (err) throw err // not connected
@@ -44,7 +44,6 @@ module.exports = ({ router, orm }) => {
             countdown.taskId], (newErr, newRows, newFields) => {
             if (newErr) throw newErr
             connection.release()
-            console.log('Send back data: ', newRows[1])
             res.send(newRows[1])
           })
         }
